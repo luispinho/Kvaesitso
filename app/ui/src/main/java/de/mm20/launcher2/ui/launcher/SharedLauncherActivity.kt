@@ -1,6 +1,5 @@
 package de.mm20.launcher2.ui.launcher
 
-import android.app.WallpaperManager
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.content.res.Resources
@@ -8,10 +7,17 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.CompositionLocalProvider
@@ -19,22 +25,25 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import de.mm20.launcher2.preferences.BaseLayout
 import de.mm20.launcher2.preferences.SystemBarColors
 import de.mm20.launcher2.ui.assistant.AssistantScaffold
@@ -75,8 +84,6 @@ abstract class SharedLauncherActivity(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val wallpaperManager = WallpaperManager.getInstance(this)
-
         val windowSize = Resources.getSystem().displayMetrics.let {
             Size(it.widthPixels.toFloat(), it.heightPixels.toFloat())
         }
@@ -91,6 +98,9 @@ abstract class SharedLauncherActivity(
             val snackbarHostState = remember { SnackbarHostState() }
             val wallpaperColors by wallpaperColorsAsState()
             val dimBackground by viewModel.dimBackground.collectAsState()
+
+            val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
             CompositionLocalProvider(
                 LocalEnterHomeTransitionManager provides enterHomeTransitionManager,
                 LocalWindowSize provides windowSize,
@@ -130,9 +140,11 @@ abstract class SharedLauncherActivity(
                         }
 
 
-                        val systemUiController = rememberSystemUiController()
+                        val windowInsetsController = WindowInsetsControllerCompat(
+                            window, window.decorView.rootView
+                        )
 
-                        val enterTransitionProgress = remember { mutableStateOf(1f) }
+                        val enterTransitionProgress = remember { mutableFloatStateOf(1f) }
                         var enterTransition by remember {
                             mutableStateOf<EnterHomeTransition?>(
                                 null
@@ -145,7 +157,7 @@ abstract class SharedLauncherActivity(
                                 .flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED)
                                 .collect {
                                     if (it != null) {
-                                        enterTransitionProgress.value = 0f
+                                        enterTransitionProgress.floatValue = 0f
                                         enterTransition = it
                                         enterTransitionProgress.animateTo(1f)
                                         enterTransition = null
@@ -154,14 +166,34 @@ abstract class SharedLauncherActivity(
                         }
 
                         LaunchedEffect(hideStatus) {
-                            systemUiController.isStatusBarVisible = !hideStatus
+                            if (hideStatus) {
+                                windowInsetsController.hide(WindowInsetsCompat.Type.statusBars())
+                            } else {
+                                windowInsetsController.show(WindowInsetsCompat.Type.statusBars())
+                            }
                         }
                         LaunchedEffect(hideNav) {
-                            systemUiController.isNavigationBarVisible = !hideNav
+                            if (hideNav) {
+                                windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
+                            } else {
+                                windowInsetsController.show(WindowInsetsCompat.Type.navigationBars())
+                            }
                         }
 
                         OverlayHost(
                             modifier = Modifier
+//                                .pointerInteropFilter { motionEvent ->
+//                                    val screenHeight = windowSize.height
+//                                    val navBarHeight = bottomInset.value
+//
+//                                    if (motionEvent.y >= screenHeight - (navBarHeight * 10)) {
+//                                        // Consume the touch event, preventing propagation
+//                                        true
+//                                    } else {
+//                                        // Allow the touch event to propagate
+//                                        false
+//                                    }
+//                                }
                                 .fillMaxSize()
                                 .background(if (dimBackground) Color.Black.copy(alpha = 0.30f) else Color.Transparent),
                             contentAlignment = Alignment.BottomCenter
@@ -190,10 +222,10 @@ abstract class SharedLauncherActivity(
                                                     .fillMaxSize()
                                                     .graphicsLayer {
                                                         scaleX =
-                                                            0.5f + enterTransitionProgress.value * 0.5f
+                                                            0.5f + enterTransitionProgress.floatValue * 0.5f
                                                         scaleY =
-                                                            0.5f + enterTransitionProgress.value * 0.5f
-                                                        alpha = enterTransitionProgress.value
+                                                            0.5f + enterTransitionProgress.floatValue * 0.5f
+                                                        alpha = enterTransitionProgress.floatValue
                                                     },
                                                 darkStatusBarIcons = lightStatus,
                                                 darkNavBarIcons = lightNav,
@@ -212,10 +244,10 @@ abstract class SharedLauncherActivity(
                                                     .fillMaxSize()
                                                     .graphicsLayer {
                                                         scaleX =
-                                                            0.5f + enterTransitionProgress.value * 0.5f
+                                                            0.5f + enterTransitionProgress.floatValue * 0.5f
                                                         scaleY =
-                                                            0.5f + enterTransitionProgress.value * 0.5f
-                                                        alpha = enterTransitionProgress.value
+                                                            0.5f + enterTransitionProgress.floatValue * 0.5f
+                                                        alpha = enterTransitionProgress.floatValue
                                                     },
                                                 darkStatusBarIcons = lightStatus,
                                                 darkNavBarIcons = lightNav,
@@ -246,11 +278,11 @@ abstract class SharedLauncherActivity(
                                     modifier = Modifier
                                         .align(Alignment.TopStart)
                                         .graphicsLayer {
-                                            val p = (enterTransitionProgress.value).pow(2f)
+                                            val p = (enterTransitionProgress.floatValue).pow(2f)
                                             transformOrigin = TransformOrigin.Center
                                             translationX = it.targetBounds.left + dX * (1 - p)
                                             translationY = it.targetBounds.top + dY * (1 - p)
-                                            alpha = enterTransitionProgress.value
+                                            alpha = enterTransitionProgress.floatValue
                                             scaleX = 1f + s * (1 - p)
                                             scaleY = 1f + s * (1 - p)
                                         }) {
@@ -259,10 +291,24 @@ abstract class SharedLauncherActivity(
                                             dX,
                                             dY
                                         )
-                                    ) { enterTransitionProgress.value }
+                                    ) { enterTransitionProgress.floatValue }
                                 }
                             }
                             LauncherBottomSheets()
+
+                            // Intercept gestures in the navigation bar area
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(bottomInset.value.dp + 2.dp) // Approx height of navigation bar
+                                    .background(Color.Green)
+                                    .align(Alignment.BottomCenter)
+                                    .pointerInput(Unit) {
+                                        detectTapGestures {
+                                            // Do nothing, just intercept gestures
+                                        }
+                                    }
+                            )
                         }
                     }
                 }
