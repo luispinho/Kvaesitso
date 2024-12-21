@@ -20,6 +20,7 @@ import de.mm20.launcher2.preferences.search.ShortcutSearchSettings
 import de.mm20.launcher2.preferences.ui.SearchUiSettings
 import de.mm20.launcher2.profiles.Profile
 import de.mm20.launcher2.profiles.ProfileManager
+import de.mm20.launcher2.search.AllAppsResults
 import de.mm20.launcher2.search.AppShortcut
 import de.mm20.launcher2.search.Application
 import de.mm20.launcher2.search.Article
@@ -43,6 +44,7 @@ import de.mm20.launcher2.searchactions.actions.SearchAction
 import de.mm20.launcher2.services.favorites.FavoritesService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -203,7 +205,10 @@ class SearchVM : ViewModel(), KoinComponent {
         }
 
         if (isSearchEmpty.value)
-            bestMatch.value = null
+
+            // select first app
+            bestMatch.value = appResults.firstOrNull()
+//            bestMatch.value = null
         try {
             searchJob?.cancel()
         } catch (_: CancellationException) {
@@ -220,7 +225,8 @@ class SearchVM : ViewModel(), KoinComponent {
                 } else {
                     flowOf(emptyList())
                 }
-                val allApps = searchService.getAllApps()
+//                val allApps = searchService.getAllApps()
+                val allApps: Flow<AllAppsResults> = flowOf()
 
                 allApps
                     .combine(hiddenItemKeys) { results, hiddenKeys -> results to hiddenKeys }
