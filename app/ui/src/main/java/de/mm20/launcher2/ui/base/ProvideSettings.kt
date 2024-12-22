@@ -1,6 +1,10 @@
 package de.mm20.launcher2.ui.base
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import de.mm20.launcher2.preferences.IconShape
 import de.mm20.launcher2.preferences.ui.CardStyle
 import de.mm20.launcher2.preferences.ui.GridSettings
@@ -13,7 +17,6 @@ import de.mm20.launcher2.widgets.FavoritesWidget
 import de.mm20.launcher2.widgets.WidgetRepository
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.inject
 
 @Composable

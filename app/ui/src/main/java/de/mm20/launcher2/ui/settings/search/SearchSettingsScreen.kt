@@ -311,6 +311,17 @@ fun SearchSettingsScreen() {
                     },
                     icon = Icons.AutoMirrored.Rounded.Sort
                 )
+                val showAllAppsWhenOpeningDrawer by viewModel.showAllAppsWhenOpeningDrawer.collectAsStateWithLifecycle(
+                    null
+                )
+                SwitchPreference(
+                    title = stringResource(R.string.preference_search_bar_show_all_apps_default),
+                    summary = stringResource(R.string.preference_search_bar_show_all_apps_default_summary),
+                    value = showAllAppsWhenOpeningDrawer == true,
+                    onValueChanged = {
+                        viewModel.setShowAllAppsWhenOpeningDrawer(it)
+                    }
+                )
             }
         }
     }

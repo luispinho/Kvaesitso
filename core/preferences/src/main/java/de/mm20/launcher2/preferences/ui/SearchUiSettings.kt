@@ -61,4 +61,13 @@ class SearchUiSettings internal constructor(
         }
     }
 
+    val showAllAppsWhenOpeningDrawer
+        get() = launcherDataStore.data.map { it.showAllAppsWhenOpeningDrawer }.distinctUntilChanged()
+
+    fun setShowAllAppsWhenOpeningDrawer(showAllAppsWhenOpeningDrawer: Boolean) {
+        launcherDataStore.update {
+            it.copy(showAllAppsWhenOpeningDrawer = showAllAppsWhenOpeningDrawer)
+        }
+    }
+
 }

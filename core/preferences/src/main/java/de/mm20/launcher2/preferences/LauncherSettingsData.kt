@@ -1,7 +1,5 @@
 package de.mm20.launcher2.preferences
 
-import android.content.Context
-import de.mm20.launcher2.preferences.search.LocationSearchSettings
 import de.mm20.launcher2.search.SearchFilters
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -92,6 +90,8 @@ data class LauncherSettingsData internal constructor(
     val searchResultsReversed: Boolean = false,
     val separateWorkProfile: Boolean = true,
 
+    val showAllAppsWhenOpeningDrawer: Boolean = true,
+
     val rankingWeightFactor: WeightFactor = WeightFactor.Default,
 
     val hiddenItemsShowButton: Boolean = false,
@@ -168,13 +168,6 @@ data class LauncherSettingsData internal constructor(
 
 
     ) {
-    constructor(
-        context: Context,
-    ) : this(
-        weatherImperialUnits = context.resources.getBoolean(R.bool.default_imperialUnits),
-        locationSearchImperialUnits = context.resources.getBoolean(R.bool.default_imperialUnits),
-        gridColumnCount = context.resources.getInteger(R.integer.config_columnCount),
-    )
 }
 
 @Serializable

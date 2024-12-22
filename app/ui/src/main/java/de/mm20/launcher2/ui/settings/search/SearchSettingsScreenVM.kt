@@ -130,4 +130,11 @@ class SearchSettingsScreenVM : ViewModel(), KoinComponent {
     fun setSearchFilters(searchFilters: SearchFilters) {
         searchFilterSettings.setDefaultFilter(searchFilters)
     }
+
+    val showAllAppsWhenOpeningDrawer = searchUiSettings.showAllAppsWhenOpeningDrawer
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
+
+    fun setShowAllAppsWhenOpeningDrawer(showAllAppsWhenOpeningDrawer: Boolean) {
+        searchUiSettings.setShowAllAppsWhenOpeningDrawer(showAllAppsWhenOpeningDrawer)
+    }
 }
