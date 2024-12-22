@@ -20,6 +20,7 @@ import de.mm20.launcher2.preferences.search.ShortcutSearchSettings
 import de.mm20.launcher2.preferences.ui.SearchUiSettings
 import de.mm20.launcher2.profiles.Profile
 import de.mm20.launcher2.profiles.ProfileManager
+import de.mm20.launcher2.search.AllAppsResults
 import de.mm20.launcher2.search.AppShortcut
 import de.mm20.launcher2.search.Application
 import de.mm20.launcher2.search.Article
@@ -75,6 +76,9 @@ class SearchVM : ViewModel(), KoinComponent {
     val launchOnEnter = searchUiSettings.launchOnEnter
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    private val showAllAppsWhenOpeningDrawer = searchUiSettings.showAllAppsWhenOpeningDrawer
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
     private val searchService: SearchService by inject()
 
     val searchQuery = mutableStateOf("")
@@ -120,7 +124,7 @@ class SearchVM : ViewModel(), KoinComponent {
     val searchActionResults = mutableStateListOf<SearchAction>()
     val locationResults = mutableStateListOf<Location>()
 
-    var previousResults: SearchResults? = null
+    private var previousResults: SearchResults? = null
 
     val hiddenResultsButton = searchUiSettings.hiddenItemsButton
     val hiddenResults = mutableStateListOf<SavableSearchable>()
@@ -162,7 +166,7 @@ class SearchVM : ViewModel(), KoinComponent {
         search(searchQuery.value, forceRestart = true)
     }
 
-    fun closeFilters() {
+    private fun closeFilters() {
         showFilters.value = false
     }
 
@@ -220,7 +224,18 @@ class SearchVM : ViewModel(), KoinComponent {
                 } else {
                     flowOf(emptyList())
                 }
-                val allApps = searchService.getAllApps()
+
+                val allApps = if (showAllAppsWhenOpeningDrawer.value) {
+                    searchService.getAllApps()
+                } else {
+                    flowOf(
+                        AllAppsResults(
+                            standardProfileApps = listOf(),
+                            workProfileApps = listOf(),
+                            privateSpaceApps = listOf(),
+                        )
+                    )
+                }
 
                 allApps
                     .combine(hiddenItemKeys) { results, hiddenKeys -> results to hiddenKeys }
