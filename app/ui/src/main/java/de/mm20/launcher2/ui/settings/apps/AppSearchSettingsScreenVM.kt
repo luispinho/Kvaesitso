@@ -2,6 +2,7 @@ package de.mm20.launcher2.ui.settings.apps
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import de.mm20.launcher2.preferences.search.AppSearchSettings
 import de.mm20.launcher2.preferences.ui.SearchUiSettings
 import de.mm20.launcher2.preferences.ui.UiSettings
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,6 +14,7 @@ import org.koin.core.component.inject
 class AppSearchSettingsScreenVM: ViewModel(), KoinComponent {
     private val searchUiSettings: SearchUiSettings by inject()
     private val uiSettings: UiSettings by inject()
+    private val appSearchSettings: AppSearchSettings by inject()
 
     val allApps = searchUiSettings.allApps
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
@@ -33,5 +35,12 @@ class AppSearchSettingsScreenVM: ViewModel(), KoinComponent {
 
     fun setShowListIcons(showIcons: Boolean) {
         uiSettings.setGridShowListIcons(showIcons)
+    }
+
+    val fuzzySearch = appSearchSettings.fuzzySearch
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
+
+    fun setFuzzySearch(fuzzySearch: Boolean) {
+        appSearchSettings.setFuzzySearch(fuzzySearch)
     }
 }
