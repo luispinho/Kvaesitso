@@ -24,6 +24,7 @@ fun AppSearchSettingsScreen() {
     val allApps by viewModel.allApps.collectAsStateWithLifecycle()
     val showList by viewModel.showList.collectAsStateWithLifecycle()
     val showListIcons by viewModel.showListIcons.collectAsStateWithLifecycle()
+    val fuzzySearch by viewModel.fuzzySearch.collectAsStateWithLifecycle()
 
     PreferenceScreen(
         title = stringResource(R.string.preference_search_apps)
@@ -37,6 +38,14 @@ fun AppSearchSettingsScreen() {
                     value = allApps == true,
                     onValueChanged = {
                         viewModel.setAllApps(it)
+                    }
+                )
+                SwitchPreference(
+                    title = stringResource(R.string.preference_search_apps_fuzzy),
+                    summary = stringResource(R.string.preference_search_apps_fuzzy_summary),
+                    value = fuzzySearch == true,
+                    onValueChanged = {
+                        viewModel.setFuzzySearch(it)
                     }
                 )
             }

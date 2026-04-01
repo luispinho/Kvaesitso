@@ -16,6 +16,7 @@ import de.mm20.launcher2.search.Application
 import de.mm20.launcher2.search.ResultScore
 import de.mm20.launcher2.search.SearchableRepository
 import de.mm20.launcher2.search.StringNormalizer
+import de.mm20.launcher2.preferences.search.AppSearchSettings
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineScope
@@ -24,6 +25,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.launch
@@ -44,6 +46,7 @@ internal class AppRepositoryImpl(
     private val context: Context,
     private val profileManager: ProfileManager,
     private val stringNormalizer: StringNormalizer,
+    private val appSearchSettings: AppSearchSettings,
 ) : AppRepository {
     private val scope = CoroutineScope(Dispatchers.Default + Job())
 
@@ -241,10 +244,11 @@ internal class AppRepositoryImpl(
     override fun search(query: String, allowNetwork: Boolean): Flow<ImmutableList<LauncherApp>> {
         val normalizedQuery = stringNormalizer.normalize(query)
 
-        return installedApps.map { apps ->
+        return installedApps.combine(appSearchSettings.fuzzySearch) { apps, fuzzySearch ->
             withContext(Dispatchers.Default) {
                 val normalizerId = stringNormalizer.id
                 val appResults = mutableListOf<LauncherApp>()
+                val minScore = if (fuzzySearch) 0.5f else 0.8f
                 if (query.isEmpty()) {
                     appResults.addAll(apps)
                 } else {
@@ -262,7 +266,7 @@ internal class AppRepositoryImpl(
                                 }
                             ),
                         )
-                        if (score.score < 0.8f) return@mapNotNull null
+                        if (score.score < minScore) return@mapNotNull null
                         app.copy(
                             score = score
                         )

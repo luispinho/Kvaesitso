@@ -4,6 +4,7 @@ import de.mm20.launcher2.backup.Backupable
 import de.mm20.launcher2.preferences.feed.FeedSettings
 import de.mm20.launcher2.preferences.search.ContactSearchSettings
 import de.mm20.launcher2.preferences.media.MediaSettings
+import de.mm20.launcher2.preferences.search.AppSearchSettings
 import de.mm20.launcher2.preferences.search.CalculatorSearchSettings
 import de.mm20.launcher2.preferences.search.CalendarSearchSettings
 import de.mm20.launcher2.preferences.search.FavoritesSettings
@@ -31,6 +32,7 @@ import org.koin.dsl.module
 val preferencesModule = module {
     single { LauncherDataStore(androidContext()) }
     factory<Backupable>(named<LauncherDataStore>()) { get<LauncherDataStore>() }
+    factory { AppSearchSettings(get()) }
     factory { MediaSettings(get()) }
     factory { ContactSearchSettings(get()) }
     factory { FileSearchSettings(get()) }
